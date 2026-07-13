@@ -1,0 +1,28 @@
+services:
+  swift:
+    build: .
+    image: msswift:torch2.7.1-cu128
+    container_name: msswift
+    ipc: host              # 多卡训练必需，替代 shm_size
+    network_mode: host     # 分布式训练 / tensorboard / gradio 端口直通
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    environment:
+      - HF_HOME=/root/.cache/huggingface
+    volumes:
+      - ./ms-swift:/workspace/ms-swift              # ms-swift 源码，宿主机直接改
+      - ./workdir:/workspace/workdir                # 你的训练脚本 / 输出目录
+      - ${HOME}/.cache/huggingface:/root/.cache/huggingface   # 模型缓存持久化
+      - ${HOME}/.cache/modelscope:/root/.cache/modelscope
+      # - /data:/workspace/data                     # 按需挂载数据盘
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
