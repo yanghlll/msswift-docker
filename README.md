@@ -89,7 +89,7 @@ python -c "import swift, torch; print('swift', swift.__version__); print('cuda',
 ```bash
 CUDA_VISIBLE_DEVICES=0 swift sft \
     --model Qwen/Qwen2.5-0.5B-Instruct \
-    --train_type lora \
+    --tuner_type lora \
     --dataset 'AI-ModelScope/alpaca-gpt4-data-zh#500' \
     --num_train_epochs 1 \
     --per_device_train_batch_size 4 \
@@ -109,6 +109,8 @@ swift infer \
 ```
 
 > 模型和数据集默认从 ModelScope 下载；想改用 HuggingFace Hub，在命令前加 `USE_HF=1`。
+>
+> 注意：ms-swift 4.x 把 3.x 的 `--train_type` 改名为 `--tuner_type`，网上老教程的命令需对应替换。
 
 ## 可选组件
 
