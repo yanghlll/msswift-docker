@@ -121,6 +121,27 @@ swift infer \
 >
 > 注意：ms-swift 4.x 把 3.x 的 `--train_type` 改名为 `--tuner_type`，网上老教程的命令需对应替换。
 
+## 单机 8 卡训练
+
+仓库 `examples/` 下提供了现成脚本，进容器后直接跑：
+
+```bash
+# LoRA 微调（推荐先跑这个，显存友好）
+bash /workspace/ms-swift/../examples/sft_8gpu_lora.sh   # 或 cd 到本仓库目录后 bash examples/sft_8gpu_lora.sh
+
+# 全参数微调（DeepSpeed ZeRO-3 分片省显存）
+bash examples/sft_8gpu_full.sh
+```
+
+脚本顶部把 `MODEL / DATASET / 卡号 / batch size` 都提成了变量，改这几行即可。多卡关键点：
+- `NPROC_PER_NODE=8` + `CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7` 指定用满 8 卡；
+- `--deepspeed zero2`（LoRA）/ `zero3`（全参）是 ms-swift 内置配置，无需自己写 config；
+- 全局 batch = 卡数 × 单卡 batch × 梯度累积，脚本会按 `GLOBAL_BS` 自动算 `gradient_accumulation_steps`；
+- 显存不够就调小 `PER_DEVICE_BS` 或 `max_length`。
+
+> `examples/` 脚本在本仓库里（宿主机 `msswift-docker/examples/`），容器内路径取决于你把仓库挂在哪；
+> 最省事的做法是进容器后 `cd` 到仓库挂载路径再 `bash examples/xxx.sh`。
+
 ## 可选组件
 
 **vLLM**（GRPO 训练 / 推理加速需要，镜像增大约 10GB）：取消 `Dockerfile` 中这行的注释后重新 build：
